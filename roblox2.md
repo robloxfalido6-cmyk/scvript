@@ -188,6 +188,7 @@ end)
 -- Speed textbox + toggle
 local SpeedBox = Instance.new("TextBox", FrameRacks)
 SpeedBox.Size = UDim2.new(0.8,0,0,30)
+SpeedBox.Position = UDim2.new(0.1,0,0.4,0)
 SpeedBox.PlaceholderText = "Velocidade (0-500)"
 SpeedBox.BackgroundColor3 = Color3.fromRGB(30,30,30)
 SpeedBox.TextColor3 = Color3.fromRGB(255,255,255)
@@ -224,111 +225,80 @@ local SelectedSkinPlayer = nil
 local SelectedButton = nil
 
 local function RefreshSkinList()
-    -- Continuando do SkinList
-
-local SelectedSkinPlayer = nil
-local SelectedButton = nil
-
-local function RefreshSkinList()
     SkinList:ClearAllChildren()
-    local y = 0
-    for _,plr in pairs(Players:GetPlayers()) do
-        if plr ~= LocalPlayer then
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
             local btn = Instance.new("TextButton", SkinList)
-            btn.Size = UDim2.new(1, -10, 0, 35)
-            btn.Position = UDim2.new(0,5,0,y)
-            btn.Text = plr.Name
+            btn.Size = UDim2.new(1,0,0,30)
+            btn.Text = player.Name
             btn.BackgroundColor3 = Color3.fromRGB(60,60,60)
             btn.TextColor3 = Color3.fromRGB(255,255,255)
-            btn.TextXAlignment = Enum.TextXAlignment.Left
-
-            -- Label de check ✔
-            local checkLabel = Instance.new("TextLabel", btn)
-            checkLabel.Size = UDim2.new(0, 30, 1, 0)
-            checkLabel.Position = UDim2.new(1, -35, 0, 0)
-            checkLabel.Text = ""
-            checkLabel.TextColor3 = Color3.fromRGB(144,238,144) -- verde claro
-            checkLabel.BackgroundTransparency = 1
-            checkLabel.TextScaled = true
+            btn.BorderSizePixel = 0
+            btn.Font = Enum.Font.SourceSansBold
+            btn.TextSize = 18
 
             btn.MouseButton1Click:Connect(function()
                 if SelectedButton then
-                    SelectedButton:FindFirstChildOfClass("TextLabel").Text = ""
+                    SelectedButton.BackgroundColor3 = Color3.fromRGB(60,60,60)
                 end
                 SelectedButton = btn
-                checkLabel.Text = "✔"
-                SelectedSkinPlayer = plr
+                SelectedSkinPlayer = player
+                btn.BackgroundColor3 = Color3.fromRGB(0,200,0)
             end)
-
-            y = y + 40
         end
     end
-    SkinList.CanvasSize = UDim2.new(0,0,0,y)
 end
 
-Players.PlayerAdded:Connect(RefreshSkinList)
-Players.PlayerRemoving:Connect(RefreshSkinList)
 RefreshSkinList()
 
--- Botão Copy Skin
-local CopySkinButton = Instance.new("TextButton", FrameSkin)
-CopySkinButton.Size = UDim2.new(0.5,0,0,35)
-CopySkinButton.Position = UDim2.new(0.25,0,0.65,0)
-CopySkinButton.Text = "Copy Skin"
-CopySkinButton.BackgroundColor3 = Color3.fromRGB(50,200,50)
-CopySkinButton.TextColor3 = Color3.fromRGB(0,0,0)
-CopySkinButton.BorderSizePixel = 0
-CopySkinButton.Font = Enum.Font.SourceSansBold
-CopySkinButton.TextSize = 20
-
-CopySkinButton.MouseButton1Click:Connect(function()
-    if SelectedSkinPlayer and SelectedSkinPlayer.Character then
-        local targetHumanoid = SelectedSkinPlayer.Character:FindFirstChildOfClass("Humanoid")
-        if targetHumanoid then
-            local success, desc = pcall(function()
-                return targetHumanoid:GetAppliedDescription()
-            end)
-            if success and desc then
-                local localHum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-                if localHum then
-                    localHum:ApplyDescription(desc)
-                end
-            end
-        end
-    else
-        warn("Selecione um player válido com personagem carregado!")
-    end
+-- Atualizar lista quando jogador entra ou sai
+Players.PlayerAdded:Connect(function()
+    RefreshSkinList()
+end)
+Players.PlayerRemoving:Connect(function()
+    RefreshSkinList()
 end)
 
--- OBS: ESP (verde + nome)
-task.spawn(function()
-    while true do
-        task.wait(0.1)
-        if espEnabled then
-            for _,plr in pairs(Players:GetPlayers()) do
-                if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and plr ~= LocalPlayer then
-                    local hrp = plr.Character.HumanoidRootPart
-                    if not hrp:FindFirstChild("ESPBox") then
-                        local box = Instance.new("BoxHandleAdornment")
-                        box.Name = "ESPBox"
-                        box.Adornee = hrp
-                        box.AlwaysOnTop = true
-                        box.ZIndex = 10
-                        box.Size = Vector3.new(2,3,1)
-                        box.Color = BrickColor.new("Bright green")
-                        box.Parent = hrp
-                    end
-                end
-            end
-        else
-            for _,plr in pairs(Players:GetPlayers()) do
-                if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-                    local hrp = plr.Character.HumanoidRootPart
-                    if hrp:FindFirstChild("ESPBox") then
-                        hrp.ESPBox:Destroy()
-                    end
-                end
+-- Botão copiar skin
+local CopySkinButton = Instance.new("TextButton", FrameSkin)
+CopySkinButton.Size = UDim2.new(0.8,0,0,40)
+CopySkinButton.Position = UDim2.new(0.1,0,0.65,0)
+CopySkinButton.Text = "Copiar Skin"
+CopySkinButton.BackgroundColor3 = Color3.fromRGB(50,150,250)
+CopySkinButton.TextColor3 = Color3.fromRGB(255,255,255)
+CopySkinButton.BorderSizePixel = 0
+CopySkinButton.Font = Enum.Font.SourceSansBold
+CopySkinButton.TextSize = 18
+
+CopySkinButton.MouseButton1Click:Connect(function()
+    if SelectedSkinPlayer and SelectedSkinPlayer.Character and LocalPlayer.Character then
+        local sourceChar = SelectedSkinPlayer.Character
+        local targetChar = LocalPlayer.Character
+
+        -- Copiar roupas e acessórios
+        for _, item in pairs(sourceChar:GetChildren()) do
+            if item:IsA("Accessory") or item:IsA("Clothing") then
+                item:Clone().Parent = targetChar
             end
         end
+
+        -- Copiar Body Colors
+        local sourceBodyColors = sourceChar:FindFirstChild("Body Colors")
+        if sourceBodyColors then
+            local cloneColors = sourceBodyColors:Clone()
+            cloneColors.Parent = targetChar
+        end
+
+        -- Copiar face
+        local sourceFace = sourceChar:FindFirstChildOfClass("Decal")
+        if sourceFace and sourceFace.Name == "face" then
+            local faceClone = sourceFace:Clone()
+            faceClone.Parent = targetChar:FindFirstChild("Head")
+        end
+
+        CopySkinButton.Text = "Copiado!"
+        task.delay(2, function()
+            CopySkinButton.Text = "Copiar Skin"
+        end)
     end
-end
+end)
