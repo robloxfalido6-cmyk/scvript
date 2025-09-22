@@ -142,11 +142,11 @@ end)
 -- RACKS: ESP, Speed, Infinity Jump
 -- =======================
 local espEnabled, speedEnabled, infinityJumpEnabled = false,false,false
-local speedValue = 16
 
-local function CreateToggle(parent, name, callback)
+local function CreateToggle(parent, name, positionY, callback)
     local btn = Instance.new("TextButton", parent)
     btn.Size = UDim2.new(0.8,0,0,35)
+    btn.Position = UDim2.new(0.1,0,0,positionY)
     btn.Text = name.." [OFF]"
     btn.TextColor3 = Color3.fromRGB(255,255,255)
     btn.BackgroundColor3 = Color3.fromRGB(40,40,40)
@@ -169,33 +169,25 @@ local function CreateToggle(parent, name, callback)
     end)
 end
 
--- ESP toggle
-CreateToggle(FrameRacks,"ESP Player",function(state)
-    espEnabled = state
-end)
+-- Criando os toggles corretamente
+CreateToggle(FrameRacks,"ESP Player",10,function(state) espEnabled = state end)
+CreateToggle(FrameRacks,"Infinity Jump",55,function(state) infinityJumpEnabled = state end)
+CreateToggle(FrameRacks,"Speed",100,function(state) speedEnabled = state end)
 
--- Infinity Jump toggle
-CreateToggle(FrameRacks,"Infinity Jump",function(state)
-    infinityJumpEnabled = state
-end)
-
+-- Infinity Jump
 UserInputService.JumpRequest:Connect(function()
     if infinityJumpEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
         LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
     end
 end)
 
--- Speed textbox + toggle
+-- Speed textbox
 local SpeedBox = Instance.new("TextBox", FrameRacks)
 SpeedBox.Size = UDim2.new(0.8,0,0,30)
-SpeedBox.Position = UDim2.new(0.1,0,0.4,0)
+SpeedBox.Position = UDim2.new(0.1,0,0,145)
 SpeedBox.PlaceholderText = "Velocidade (0-500)"
 SpeedBox.BackgroundColor3 = Color3.fromRGB(30,30,30)
 SpeedBox.TextColor3 = Color3.fromRGB(255,255,255)
-
-CreateToggle(FrameRacks,"Speed",function(state)
-    speedEnabled = state
-end)
 
 -- Aplicar Speed
 task.spawn(function()
@@ -212,7 +204,7 @@ end)
 -- COPY SKIN
 -- =======================
 local SkinList = Instance.new("ScrollingFrame",FrameSkin)
-SkinList.Size = UDim2.new(0.8,0,0.5,0)
+SkinList.Size = UDim2.new(0.8,0,0.6,0)
 SkinList.Position = UDim2.new(0.1,0,0.1,0)
 SkinList.BackgroundColor3 = Color3.fromRGB(40,40,40)
 SkinList.BorderSizePixel = 0
@@ -250,19 +242,13 @@ local function RefreshSkinList()
 end
 
 RefreshSkinList()
-
--- Atualizar lista quando jogador entra ou sai
-Players.PlayerAdded:Connect(function()
-    RefreshSkinList()
-end)
-Players.PlayerRemoving:Connect(function()
-    RefreshSkinList()
-end)
+Players.PlayerAdded:Connect(RefreshSkinList)
+Players.PlayerRemoving:Connect(RefreshSkinList)
 
 -- Botão copiar skin
 local CopySkinButton = Instance.new("TextButton", FrameSkin)
 CopySkinButton.Size = UDim2.new(0.8,0,0,40)
-CopySkinButton.Position = UDim2.new(0.1,0,0.65,0)
+CopySkinButton.Position = UDim2.new(0.1,0,0.75,0)
 CopySkinButton.Text = "Copiar Skin"
 CopySkinButton.BackgroundColor3 = Color3.fromRGB(50,150,250)
 CopySkinButton.TextColor3 = Color3.fromRGB(255,255,255)
