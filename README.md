@@ -1,0 +1,2 @@
+# scvript
+Roblox lua sscript
